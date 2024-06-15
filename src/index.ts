@@ -149,19 +149,13 @@ class DiscuitClient {
     this.axios.defaults.headers["Cookie"] = `session=${this.sessionId}`;
   }
 
-  async getCommunityPosts(communityName: string) {
-    const community = await client.getCommunity(communityName);
-    if (!community) throw new Error("Community not found");
-
-    // TODO: support other options
-    const options = {
-      feed: "home",
-      sort: "hot",
-      communityId: community.id,
-    };
-
-    let url = `/api/posts`;
-    url += `?feed=${options.feed}&sort=${options.sort}&communityId=${options.communityId}`;
+  async getPosts(sort: Sort = Sort.Hot, communityName?: string) {
+    let url = `/api/posts?sort=${sort}`;
+    if (communityName) {
+      const community = await this.getCommunity(communityName);
+      if (!community) throw new Error("Community not found");
+      url += `&communityId=${community.id}`;
+    }
 
     const response = await this.axios.get(url);
     return response.data;
@@ -226,12 +220,14 @@ function generateRSS(posts: Post[], communityName: string) {
 
 const client = new DiscuitClient("https://discuit.net");
 
-app.get("/:communityName", async (req, res) => {
-  const { communityName } = req.params;
+async function handleRSSRequest(req, res, communityName?: string) {
+  const sort = req.query.sort || Sort.Hot;
 
   try {
-    const posts = await client.getCommunityPosts(communityName);
-    const rss = generateRSS(posts.posts, communityName);
+    const posts = communityName
+      ? await client.getPosts(communityName, sort)
+      : await client.getPosts(sort);
+    const rss = generateRSS(posts.posts, communityName || "all");
     res.set("Content-Type", "application/rss+xml");
     res.send(rss);
   } catch (error: any) {
@@ -240,6 +236,15 @@ app.get("/:communityName", async (req, res) => {
       ? res.status(error.response.status).send(error.response.data)
       : res.status(500).send("Internal Server Error");
   }
+}
+
+app.get("/:communityName", (req, res) => {
+  const { communityName } = req.params;
+  handleRSSRequest(req, res, communityName);
+});
+
+app.get("/", (req, res) => {
+  handleRSSRequest(req, res);
 });
 
 app.listen(port, async () => {
