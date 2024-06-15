@@ -1,11 +1,14 @@
 # discuit-rss
 
-an rss feed for discuit written in typescript.
+an rss feed generator for discuit written in typescript.
+
+type definitions were taken from the Discuit API documentation, which can be
+found [here](https://docs.discuit.net/).
 
 ## usage
 
 note that we do not have a hosted version of this service, so you will need to
-run it yourself.
+run it yourself locally.
 
 go to `/{communityName}` (e.g., `/cats`) to get the rss feed for that
 community, the last ten posts will be returned.
@@ -14,6 +17,12 @@ you can also go to `/` to fetch the homepage, which will also return the last
 ten posts from all communities.
 
 ## installation
+
+### binary
+
+soon™
+
+### from source
 
 before this, you will need to install [bun](https://bun.sh/), which is a
 cool javascript runtime.
