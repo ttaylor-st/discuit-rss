@@ -225,7 +225,7 @@ async function handleRSSRequest(req, res, communityName?: string) {
 
   try {
     const posts = communityName
-      ? await client.getPosts(communityName, sort)
+      ? await client.getPosts(sort, communityName)
       : await client.getPosts(sort);
     const rss = generateRSS(posts.posts, communityName || "all");
     res.set("Content-Type", "application/rss+xml");
