@@ -7,10 +7,12 @@ found [here](https://docs.discuit.net/).
 
 ## usage
 
-note that we do not have a hosted version of this service, so you will need to
-run it yourself locally.
+there's a hosted version of this project at `https://ttaylor.run.place:6135`,
+which you can use if you don't want to host it yourself. note that it may be
+a bit slow.
 
-go to `/{communityName}` (e.g., `/cats`) to get the rss feed for that
+you can get the rss feed for a community by going to `/{communityName}`
+(e.g., `https://ttaylor.run.place:6135/cats`) to get the rss feed for that
 community, the last ten posts will be returned.
 
 you can also go to `/` to fetch the homepage, which will also return the last
@@ -40,12 +42,24 @@ bun install
 ## running
 
 ```bash
-bun run start`
+bun run start
 ```
 
 this will start a server on port 3000 by default, you can change this by
-setting the `PORT` environment variable. you can access the rss feed at
-`http://localhost:3000/{communityName}`.
+setting the `PORT` environment variable, which, at least on linux and other
+unix-like systems, can be done like this:
+
+```bash
+PORT=8080 bun run start
+# or
+export PORT=8080
+bun run start
+```
+
+you can then access the server at `http://localhost:3000`, or whatever port you
+set it to.
+
+
 
 ## license
 
