@@ -16,6 +16,10 @@ community, the last ten posts will be returned.
 you can also go to `/` to fetch the homepage, which will also return the last
 ten posts from all communities.
 
+you can append `?sort=x` to the url to sort posts. the possible values for `x`
+are `hot`, `activity`, `new`, `day`, `week`, `month`, `year`. the default is
+`hot`.
+
 ## installation
 
 ### binary
