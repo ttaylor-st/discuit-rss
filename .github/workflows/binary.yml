@@ -1,0 +1,43 @@
+name: Build binaries
+
+on:
+  push:
+    branches:
+      - master
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1.2.2
+        with:
+          version: any
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build binary for Linux (x64)
+        run: bun build ./src/index.ts --compile --minify --sourcemap --outfile out/discuit_rss-linux_x64
+      - name: Build binary for Linux (ARM64)
+        run: bun build ./src/index.ts --compile --minify --sourcemap --target=bun-linux-arm64 --outfile out/discuit_rss-linux_arm64
+      - name: Build binary for Windows (x64)
+        run: bun build ./src/index.ts --compile --minify --sourcemap --target=bun-windows-x64 --outfile out/discuit_rss-windows_x64
+      - name: Build binary for macOS (x64)
+        run: bun build ./src/index.ts --compile --minify --sourcemap --target=bun-darwin-x64 --outfile out/discuit_rss-macos_x64
+      - name: Build binary for macOS (ARM64)
+        run: bun build ./src/index.ts --compile --minify --sourcemap --target=bun-darwin-arm64 --outfile out/discuit_rss-macos_arm64
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v2
+        with:
+          name: binaries
+          path: out/*
