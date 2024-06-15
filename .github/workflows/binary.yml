@@ -24,6 +24,8 @@ jobs:
           version: any
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: Install dependencies
+        run: bub ci
 
       - name: Build binary for Linux (x64)
         run: bun build ./src/index.ts --compile --minify --sourcemap --outfile out/discuit_rss-linux_x64
