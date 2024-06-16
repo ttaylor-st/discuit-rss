@@ -1,5 +1,8 @@
 import express from "express";
-import axios from "axios";
+import axios, {
+  type AxiosRequestHeaders,
+  type AxiosResponseHeaders,
+} from "axios";
 import { Builder } from "xml2js";
 import process from "process";
 
@@ -233,6 +236,17 @@ class DiscuitClient {
 
   async init() {
     const response = await this.axios.get("/api/_initial");
+    if (!response.headers["set-cookie"]) {
+      throw new Error("Failed to get CSRF token and session ID");
+    }
+
+    if (
+      !response.headers["set-cookie"][0] ||
+      !response.headers["set-cookie"][1]
+    ) {
+      throw new Error("Failed to get CSRF token and session ID");
+    }
+
     const csrfToken = response.headers["set-cookie"][0]
       .split(";")[0]
       .split("=")[1];
@@ -246,7 +260,10 @@ class DiscuitClient {
     this.axios.defaults.headers["Cookie"] = `session=${this.sessionId}`;
   }
 
-  async getPosts(sort: Sort = Sort.Hot, communityName?: string) {
+  async getPosts(
+    sort: Sort = Sort.Hot,
+    communityName?: string,
+  ): Promise<PostsResponse> {
     let url = `/api/posts?sort=${sort}`;
     if (communityName) {
       const community = await this.getCommunity(communityName);
@@ -255,6 +272,11 @@ class DiscuitClient {
     }
 
     const response = await this.axios.get(url);
+    return response.data;
+  }
+
+  async getUserFeed(username: string): Promise<UserFeedResponse> {
+    const response = await this.axios.get(`/api/users/${username}/feed`);
     return response.data;
   }
 
@@ -282,7 +304,7 @@ function generateRSS(posts: Post[], communityName: string) {
     description += ` • <a href="https://discuit.net/${communityName}/post/${post.publicId}">View ${post.noComments}`;
     description += post.noComments === 1 ? " comment" : " comments";
     description += `</a>`;
-    description += ` • Posted by <a href="https://discuit.net/@${post.author.username}">@${post.author.username}</a>`;
+    description += ` • Posted by <a href="https://discuit.net/@${post.author?.username || "Unknown"}">@${post.author?.username || "Unknown"}</a>`;
 
     return {
       title:
@@ -292,7 +314,7 @@ function generateRSS(posts: Post[], communityName: string) {
       link: `https://discuit.net/${communityName}/post/${post.publicId}`,
       description: description,
       pubDate: new Date(post.createdAt).toUTCString(),
-      author: post.author.username,
+      author: post.author?.username || "Unknown",
       category: `+${communityName}`,
     };
   };
@@ -317,14 +339,35 @@ function generateRSS(posts: Post[], communityName: string) {
 
 const client = new DiscuitClient("https://discuit.net");
 
-async function handleRSSRequest(req, res, communityName?: string) {
+async function handleRSSRequest(
+  req: AxiosRequestHeaders,
+  res: AxiosResponseHeaders,
+  name?: string,
+  isUser?: boolean,
+) {
   const sort = req.query.sort || Sort.Hot;
 
   try {
-    const posts = communityName
-      ? await client.getPosts(sort, communityName)
-      : await client.getPosts(sort);
-    const rss = generateRSS(posts.posts, communityName || "all");
+    let rss;
+    let posts: PostsResponse;
+
+    if (isUser) {
+      if (!name) throw new Error("Username is required for user RSS feed");
+      const items: UserFeedResponse = await client.getUserFeed(name);
+
+      posts = {
+        posts: items.items
+          .map((item) => (item.type === "post" ? item.item : null))
+          .filter((item) => item !== null),
+        next: items.next,
+      };
+    } else {
+      posts = name
+        ? await client.getPosts(sort, name)
+        : await client.getPosts(sort);
+    }
+
+    rss = generateRSS(posts.posts, name || "all");
     res.set("Content-Type", "application/rss+xml");
     res.send(rss);
   } catch (error: any) {
@@ -335,12 +378,23 @@ async function handleRSSRequest(req, res, communityName?: string) {
   }
 }
 
-app.get("/:communityName", (req, res) => {
-  const { communityName } = req.params;
-  handleRSSRequest(req, res, communityName);
-});
+app.get(
+  "/@:username",
+  (req: AxiosRequestHeaders, res: AxiosResponseHeaders) => {
+    const { username } = req.params;
+    handleRSSRequest(req, res, username, true);
+  },
+);
 
-app.get("/", (req, res) => {
+app.get(
+  "/:communityName",
+  (req: AxiosRequestHeaders, res: AxiosResponseHeaders) => {
+    const { communityName } = req.params;
+    handleRSSRequest(req, res, communityName);
+  },
+);
+
+app.get("/", (req: AxiosRequestHeaders, res: AxiosResponseHeaders) => {
   handleRSSRequest(req, res);
 });
 
