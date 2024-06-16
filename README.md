@@ -19,6 +19,11 @@ specifying how many posts you want to fetch.
 you can also go to `/` to fetch the homepage, which will also return the last
 ten posts from all communities.
 
+if you want to view a user's feed, you can go to `/@{username}` (e.g.,
+`https://ttaylor.run.place:6135/@lydia`) to get the last ten posts from that
+user. note that you'll probably receive less, as the `/users/{username}/feed`
+endpoint also returns comments, which discuit-rss skips.
+
 you can append `?sort=x` to the url to sort posts. the possible values for `x`
 are `hot`, `activity`, `new`, `day`, `week`, `month`, `year`. the default is
 `hot`.
