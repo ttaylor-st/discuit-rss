@@ -108,9 +108,106 @@ type Post = {
   author: User | undefined; // The User object of the author of the post.
 };
 
+type Community = {
+  id: string; // The ID of the community.
+  userId: string; // ID of the user who created the community.
+
+  name: string; // The name of the community.
+  nsfw: boolean; // If the community hosts NSFW content.
+  about: string | null; // The description of the community, null if no description was set. Maximum 2000 characters.
+
+  noMembers: number; // The number of members of the community.
+
+  proPic: Image; // The community icon.
+  bannerImage: Image; // The community banner image.
+
+  createdAt: Date; // The time at which the community was created.
+  deletedAt: Date | null; // If the community was deleted, the time at which it was deleted, otherwise null.
+
+  // If the community is a default community, only returned if the default communities are requested.
+  isDefault: boolean | undefined;
+
+  userJoined: boolean | null; // Indicates whether the authenticated user is a member. If not authenticated, this is null.
+  userMod: boolean; // Indicates whether the authenticated user is a moderator. If not authenticated, this is null.
+
+  mods: User[]; // The User objects of all of the moderators of the community.
+  rules: CommunityRule[]; // The list of community rules. The list is empty if there are no rules.
+
+  ReportDetails: {
+    noReports: number; // The total number of reports.
+    noPostReports: number; // The total number of posts reported.
+    noCommentReports: number; // The total number of comments reported.
+  } | null; // Only visible to moderators of the community, otherwise null.
+};
+
+type CommunityRule = {
+  id: number; // The ID of the community rule.
+
+  rule: string; // The title of the rule.
+  description: string | null; // The description of the rule. If no description was set, this is null.
+
+  communityId: string; // The ID of the community in which this is a rule.
+  zIndex: number; // The index of the rule. A smaller value means that the rule is closer to the top.
+
+  createdBy: string; // The ID of the user that created the rule.
+  createdAt: Date; // The time at which the rule was created.
+};
+
+type User = {
+  id: string; // The ID of the user.
+  username: string; // The username of the user. Minimum 3 characters. Maximum 21 characters.
+
+  email: string | null; // If an email address was provided, the email address of the user, otherwise null.
+  emailConfirmedAt: Date | null; // If the email address was confirmed, the time at which it was confirmed, otherwise null.
+
+  aboutMe: string | null; // The about set by the user. Maximum 10000 characters. If no about was set, this is null.
+  points: number; // The number of points that the user has.
+
+  isAdmin: boolean; // If the user is an admin.
+  proPic: Image | null; // If a profile picture was set, the profile picture of the user, otherwise null.
+  badges: Badge[]; // The list of badges that the user has, can be empty.
+
+  noPosts: number; // The number of posts the user has made.
+  noComments: number; // The number of comments the user has made.
+
+  createdAt: Date; // The time at which the account was created.
+  deleted: boolean; // If the account has been deleted.
+  deletedAt: Date | null | undefined; // If the account was deleted, the time at which it was deleted, otherwise null.
+
+  upvoteNotificationsOff: boolean; // If the user has turned off upvote notifications.
+  replyNotificationsOff: boolean; // If the user has turned off reply notifications.
+  homeFeed: "all" | "subscriptions"; // The feed the user has set as their home feed.
+  rememberFeedSort: boolean; // If the user wants their feed sort to be remembered.
+  embedsOff: boolean; // If the user wants to turn off embeds for link posts.
+  hideUserProfilePictures: boolean; // If the user wants to hide other users' profile pictures.
+
+  bannedAt: Date | null; // If the user was banned, the time at which they were banned, otherwise null.
+  isBanned: boolean; // If the user was banned.
+
+  notificationsNewCount: number; // The number of new notifications the user has.
+
+  // If the user is a moderator in any communities, the list of communities that the user moderates, otherwise null.
+  moddingList: Community[] | null;
+};
+
+type Badge = {
+  id: number; // The ID of the badge.
+  type: string; // The type of badge.
+};
+
 type PostsResponse = {
   posts: Post[];
   next: string | null;
+};
+
+type UserFeedResponse = {
+  items: UserFeedItem[];
+  next: string | null;
+};
+
+type UserFeedItem = {
+  item: Post | Comment;
+  type: "post" | "comment";
 };
 
 enum Sort {
