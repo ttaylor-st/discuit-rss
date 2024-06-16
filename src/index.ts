@@ -213,6 +213,7 @@ type UserFeedItem = {
   type: "post" | "comment";
 };
 
+// noinspection JSUnusedGlobalSymbols
 enum Sort {
   Hot = "hot",
   Activity = "activity",
@@ -355,10 +356,12 @@ async function handleRSSRequest(
       if (!name) throw new Error("Username is required for user RSS feed");
       const items: UserFeedResponse = await client.getUserFeed(name);
 
+      let tmpPosts = items.items
+        .map((item) => (item.type === "post" ? item.item : null))
+        .filter((item) => item !== null);
+
       posts = {
-        posts: items.items
-          .map((item) => (item.type === "post" ? item.item : null))
-          .filter((item) => item !== null),
+        posts: tmpPosts as Post[],
         next: items.next,
       };
     } else {
