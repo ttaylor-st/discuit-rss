@@ -263,6 +263,7 @@ class DiscuitClient {
 
   async getPosts(
     sort: Sort = Sort.Hot,
+    limit = 10,
     communityName?: string,
   ): Promise<PostsResponse> {
     let url = `/api/posts?sort=${sort}`;
@@ -272,12 +273,19 @@ class DiscuitClient {
       url += `&communityId=${community.id}`;
     }
 
+    url += `&limit=${limit}`;
+
     const response = await this.axios.get(url);
     return response.data;
   }
 
-  async getUserFeed(username: string): Promise<UserFeedResponse> {
-    const response = await this.axios.get(`/api/users/${username}/feed`);
+  async getUserFeed(
+    username: string,
+    limit: number,
+  ): Promise<UserFeedResponse> {
+    const response = await this.axios.get(
+      `/api/users/${username}/feed?limit=${limit}`,
+    );
     return response.data;
   }
 
@@ -343,9 +351,12 @@ const client = new DiscuitClient("https://discuit.net");
 async function handleRSSRequest(
   req: AxiosRequestHeaders,
   res: AxiosResponseHeaders,
+  limit?: number,
   name?: string,
   isUser?: boolean,
 ) {
+  // limit max at 50
+  const fetchLimit = req.query.limit ? Math.min(req.query.limit, 50) : 10;
   const sort = req.query.sort || Sort.Hot;
 
   try {
@@ -354,9 +365,12 @@ async function handleRSSRequest(
 
     if (isUser) {
       if (!name) throw new Error("Username is required for user RSS feed");
-      const items: UserFeedResponse = await client.getUserFeed(name);
+      const items: UserFeedResponse = await client.getUserFeed(
+        name,
+        fetchLimit,
+      );
 
-      let tmpPosts = items.items
+      const tmpPosts = items.items
         .map((item) => (item.type === "post" ? item.item : null))
         .filter((item) => item !== null);
 
@@ -366,8 +380,8 @@ async function handleRSSRequest(
       };
     } else {
       posts = name
-        ? await client.getPosts(sort, name)
-        : await client.getPosts(sort);
+        ? await client.getPosts(sort, fetchLimit, name)
+        : await client.getPosts(sort, fetchLimit);
     }
 
     rss = generateRSS(posts.posts, name || "all");
@@ -392,7 +406,7 @@ app.get(
 app.get(
   "/:communityName",
   (req: AxiosRequestHeaders, res: AxiosResponseHeaders) => {
-    const { communityName } = req.params;
+    const { communityName, limit } = req.params;
     handleRSSRequest(req, res, communityName);
   },
 );
