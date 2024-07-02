@@ -24,6 +24,9 @@ you can append `?sort=x` to the url to sort posts. the possible values for `x`
 are `hot`, `activity`, `new`, `day`, `week`, `month`, `year`. the default is
 `hot`.
 
+you can also append `?limit=x` to the url to limit the number of posts returned.
+the default is 10 and the maximum is 50.
+
 ## installation
 
 ### binary
