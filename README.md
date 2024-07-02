@@ -7,12 +7,8 @@ found [here](https://docs.discuit.net/).
 
 ## usage
 
-there's a hosted version of this project at `https://ttaylor.run.place:6135`,
-which you can use if you don't want to host it yourself. note that it may be
-a bit slow.
-
 you can get the rss feed for a community by going to `/{communityName}`
-(e.g., `https://ttaylor.run.place:6135/cats`) to get the rss feed for that
+(e.g., `http://localhost:6135/cats`) to get the rss feed for that
 community, the last ten posts will be returned, i'll eventually allow
 specifying how many posts you want to fetch.
 
@@ -20,7 +16,7 @@ you can also go to `/` to fetch the homepage, which will also return the last
 ten posts from all communities.
 
 if you want to view a user's feed, you can go to `/@{username}` (e.g.,
-`https://ttaylor.run.place:6135/@lydia`) to get the last ten posts from that
+`http://localhost:6135/@lydia`) to get the last ten posts from that
 user. note that you'll probably receive less, as the `/users/{username}/feed`
 endpoint also returns comments, which discuit-rss skips.
 
