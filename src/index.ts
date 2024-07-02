@@ -10,16 +10,9 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 import {
-  Image,
-  ImageCopy,
-  Post,
-  Community,
-  CommunityRule,
-  User,
-  Badge,
-  PostsResponse,
-  UserFeedResponse,
-  UserFeedItem,
+  type Post,
+  type PostsResponse,
+  type UserFeedResponse,
   Sort,
 } from "./types";
 
@@ -147,13 +140,18 @@ function generateRSS(posts: Post[], communityName: string) {
 
 const client = new DiscuitClient("https://discuit.net");
 
-async function handleRSSRequest(
-  req: AxiosRequestHeaders,
-  res: AxiosResponseHeaders,
-  limit?: number,
-  name?: string,
-  isUser?: boolean,
-) {
+type HandleRssRequestOptions = {
+  req: AxiosRequestHeaders;
+  res: AxiosResponseHeaders;
+  name?: string;
+  isUser?: boolean;
+};
+async function handleRSSRequest({
+  req,
+  res,
+  name,
+  isUser,
+}: HandleRssRequestOptions) {
   const fetchLimit = req.query.limit ? Math.min(req.query.limit, 50) : 10;
   const sort = req.query.sort || Sort.Hot;
 
@@ -197,8 +195,7 @@ app.get(
   "/@:username",
   (req: AxiosRequestHeaders, res: AxiosResponseHeaders) => {
     const { username } = req.params;
-    const limit = req.query.limit;
-    handleRSSRequest(req, res, limit, username, true);
+    handleRSSRequest({ req, res, name: username, isUser: true });
   },
 );
 
@@ -206,13 +203,12 @@ app.get(
   "/:communityName",
   (req: AxiosRequestHeaders, res: AxiosResponseHeaders) => {
     const { communityName } = req.params;
-    const limit = req.query.limit;
-    handleRSSRequest(req, res, limit, communityName);
+    handleRSSRequest({ req, res, name: communityName });
   },
 );
 
 app.get("/", (req: AxiosRequestHeaders, res: AxiosResponseHeaders) => {
-  handleRSSRequest(req, res);
+  handleRSSRequest({ req, res });
 });
 
 app.listen(port, async () => {
