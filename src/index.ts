@@ -355,7 +355,6 @@ async function handleRSSRequest(
   name?: string,
   isUser?: boolean,
 ) {
-  // limit max at 50
   const fetchLimit = req.query.limit ? Math.min(req.query.limit, 50) : 10;
   const sort = req.query.sort || Sort.Hot;
 
@@ -399,15 +398,17 @@ app.get(
   "/@:username",
   (req: AxiosRequestHeaders, res: AxiosResponseHeaders) => {
     const { username } = req.params;
-    handleRSSRequest(req, res, username, true);
+    const limit = req.query.limit;
+    handleRSSRequest(req, res, limit, username, true);
   },
 );
 
 app.get(
   "/:communityName",
   (req: AxiosRequestHeaders, res: AxiosResponseHeaders) => {
-    const { communityName, limit } = req.params;
-    handleRSSRequest(req, res, communityName);
+    const { communityName } = req.params;
+    const limit = req.query.limit;
+    handleRSSRequest(req, res, limit, communityName);
   },
 );
 
